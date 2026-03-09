@@ -24,5 +24,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Test
-        run: npm test
+      - name: Test with LCOV coverage
+        run: npm run test:coverage:lcov
+
+      - name: Self-ratchet coverage gate
+        run: npm run ratchet

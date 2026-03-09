@@ -1,5 +1,7 @@
 # lcov-simple-ratchet
 
+[![CI](https://github.com/nirradi/lcov-simple-ratchet/actions/workflows/ci.yml/badge.svg)](https://github.com/nirradi/lcov-simple-ratchet/actions/workflows/ci.yml)
+
 Simple LCOV coverage gate for CI pipelines (great for Nx and similar setups).
 
 After your tests generate `coverage/lcov.info`, run this tool to fail CI if line coverage is below your configured minimum.
@@ -68,6 +70,24 @@ Run this after your test step:
   }
 }
 ```
+
+## Self-ratcheting CI (this repo)
+
+This package also dog-foods itself in GitHub Actions:
+
+```bash
+npm ci
+npm run build
+npm run test:coverage:lcov
+npm run ratchet
+```
+
+The repo config in `package.json` uses:
+
+- `minimumCoverage`: `80`
+- `ratchetAbove`: `2`
+- `metric`: `"lines"`
+- `lcovPath`: `"coverage/lcov.info"`
 
 ## Testing this package
 

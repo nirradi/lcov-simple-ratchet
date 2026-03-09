@@ -38,12 +38,22 @@ Add this to your `package.json`:
 npx lcov-simple-ratchet
 ```
 
+Strict mode for missing LCOV file:
+
+```bash
+npx lcov-simple-ratchet --fail-on-missing-lcov
+```
+
+By default, if `coverage/lcov.info` is missing, the command passes (useful for Nx affected runs where some packages have no tests executed).
+
 The command exits with code `1` when:
 
 - Coverage is below `minimumCoverage`, or
 - Coverage is at least `minimumCoverage + ratchetAbove` (default manual ratchet behavior).
 
 That second rule forces an intentional config update when coverage improves significantly.
+
+Also by default, if `lcovSimpleRatchet` is not configured in `package.json`, the command passes.
 
 ## CI / Nx example
 

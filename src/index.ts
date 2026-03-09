@@ -1,9 +1,38 @@
 import { loadConfig } from "./config";
 import { parseCoverageFromLcov } from "./lcov";
 
-export function runRatchet(cwd: string = process.cwd()): { ok: boolean; message: string } {
+export interface RunRatchetOptions {
+  failOnMissingLcov?: boolean;
+}
+
+function isMissingLcovError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes("LCOV file was not found");
+}
+
+export function runRatchet(cwd: string = process.cwd(), options: RunRatchetOptions = {}): { ok: boolean; message: string } {
   const config = loadConfig(cwd);
-  const result = parseCoverageFromLcov(config.lcovPath, config.metric, cwd);
+
+  if (!config) {
+    return {
+      ok: true,
+      message: "Coverage check skipped: no lcovSimpleRatchet config found in package.json."
+    };
+  }
+
+  let result;
+
+  try {
+    result = parseCoverageFromLcov(config.lcovPath, config.metric, cwd);
+  } catch (error) {
+    if (isMissingLcovError(error) && !options.failOnMissingLcov) {
+      return {
+        ok: true,
+        message: "Coverage check skipped: lcov.info was not found."
+      };
+    }
+
+    throw error;
+  }
 
   const percentageRounded = Number(result.percentage.toFixed(2));
   const thresholdRounded = Number(config.minimumCoverage.toFixed(2));

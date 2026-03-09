@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { LcovSimpleRatchetConfig } from "./types";
+import { LcovSimpleRatchetConfig, ResolvedLcovSimpleRatchetConfig } from "./types";
 
 interface PackageJsonWithConfig {
   lcovSimpleRatchet?: LcovSimpleRatchetConfig;
@@ -37,7 +37,7 @@ function parseRatchetAbove(value: unknown): number {
   return parsed;
 }
 
-export function loadConfig(cwd: string = process.cwd()): Required<LcovSimpleRatchetConfig> {
+export function loadConfig(cwd: string = process.cwd()): ResolvedLcovSimpleRatchetConfig | null {
   const packageJsonPath = path.join(cwd, "package.json");
 
   if (!fs.existsSync(packageJsonPath)) {
@@ -49,9 +49,7 @@ export function loadConfig(cwd: string = process.cwd()): Required<LcovSimpleRatc
   const config = packageJson.lcovSimpleRatchet;
 
   if (!config) {
-    throw new Error(
-      "Missing lcovSimpleRatchet config in package.json. Expected: { \"lcovSimpleRatchet\": { \"minimumCoverage\": 80 } }"
-    );
+    return null;
   }
 
   if (!isNumber(config.minimumCoverage) || config.minimumCoverage < 0 || config.minimumCoverage > 100) {

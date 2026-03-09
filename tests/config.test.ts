@@ -68,12 +68,13 @@ describe("loadConfig", () => {
     expect(config.ratchetAbove).toBe(2);
   });
 
-  it("throws when config is missing", () => {
+  it("returns null when config is missing", () => {
     const dir = createTempDir();
 
     fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name: "fixture", version: "1.0.0" }, null, 2));
 
-    expect(() => loadConfig(dir)).toThrow(/Missing lcovSimpleRatchet config/);
+    const config = loadConfig(dir);
+    expect(config).toBeNull();
   });
 
   it("throws when minimumCoverage is invalid", () => {

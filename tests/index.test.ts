@@ -38,6 +38,47 @@ function createFixture(minimumCoverage: number, covered: number, found: number, 
   return dir;
 }
 
+function createConfigOnlyFixture(minimumCoverage: number): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "lcov-ratchet-run-"));
+  tempDirs.push(dir);
+
+  fs.writeFileSync(
+    path.join(dir, "package.json"),
+    JSON.stringify(
+      {
+        name: "fixture",
+        version: "1.0.0",
+        lcovSimpleRatchet: {
+          minimumCoverage
+        }
+      },
+      null,
+      2
+    )
+  );
+
+  return dir;
+}
+
+function createNoConfigFixture(): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "lcov-ratchet-run-"));
+  tempDirs.push(dir);
+
+  fs.writeFileSync(
+    path.join(dir, "package.json"),
+    JSON.stringify(
+      {
+        name: "fixture",
+        version: "1.0.0"
+      },
+      null,
+      2
+    )
+  );
+
+  return dir;
+}
+
 afterEach(() => {
   for (const dir of tempDirs.splice(0)) {
     fs.rmSync(dir, { recursive: true, force: true });
@@ -70,5 +111,29 @@ describe("runRatchet", () => {
 
     expect(result.ok).toBe(false);
     expect(result.message).toContain("Please raise lcovSimpleRatchet.minimumCoverage");
+  });
+
+  it("returns ok=true when config is missing", () => {
+    const dir = createNoConfigFixture();
+
+    const result = runRatchet(dir);
+
+    expect(result.ok).toBe(true);
+    expect(result.message).toContain("no lcovSimpleRatchet config found");
+  });
+
+  it("returns ok=true when lcov file is missing by default", () => {
+    const dir = createConfigOnlyFixture(70);
+
+    const result = runRatchet(dir);
+
+    expect(result.ok).toBe(true);
+    expect(result.message).toContain("lcov.info was not found");
+  });
+
+  it("throws when lcov file is missing and failOnMissingLcov is enabled", () => {
+    const dir = createConfigOnlyFixture(70);
+
+    expect(() => runRatchet(dir, { failOnMissingLcov: true })).toThrow(/LCOV file was not found/);
   });
 });

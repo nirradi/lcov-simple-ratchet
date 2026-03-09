@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execSync } from "node:child_process";
 import { afterEach, describe, expect, it } from "vitest";
 import { runRatchet } from "../src/index";
 
@@ -36,6 +37,22 @@ function createFixture(minimumCoverage: number, covered: number, found: number, 
   fs.writeFileSync(path.join(coverageDir, "lcov.info"), ["TN:", "SF:src/example.ts", `LF:${found}`, `LH:${covered}`, "end_of_record", ""].join("\n"));
 
   return dir;
+}
+
+function readMinimumCoverage(dir: string): number {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(dir, "package.json"), "utf8")) as {
+    lcovSimpleRatchet: { minimumCoverage: number };
+  };
+
+  return packageJson.lcovSimpleRatchet.minimumCoverage;
+}
+
+function initializeGitRepo(dir: string): void {
+  execSync("git init", { cwd: dir, stdio: "ignore" });
+  execSync("git config user.email test@example.com", { cwd: dir, stdio: "ignore" });
+  execSync("git config user.name 'Test User'", { cwd: dir, stdio: "ignore" });
+  execSync("git add .", { cwd: dir, stdio: "ignore" });
+  execSync("git commit -m 'initial'", { cwd: dir, stdio: "ignore" });
 }
 
 function createConfigOnlyFixture(minimumCoverage: number): string {
@@ -111,6 +128,40 @@ describe("runRatchet", () => {
 
     expect(result.ok).toBe(false);
     expect(result.message).toContain("Please raise lcovSimpleRatchet.minimumCoverage");
+  });
+
+  it("auto-ratchets minimumCoverage when threshold is exceeded and git tree is clean", () => {
+    const dir = createFixture(70, 8, 10);
+    initializeGitRepo(dir);
+
+    const result = runRatchet(dir, { autoRatchet: true });
+
+    expect(result.ok).toBe(true);
+    expect(result.message).toContain("auto-ratcheted");
+    expect(readMinimumCoverage(dir)).toBe(80);
+  });
+
+  it("does not write package.json in dry-run mode", () => {
+    const dir = createFixture(70, 8, 10);
+
+    const result = runRatchet(dir, { autoRatchet: true, dryRun: true });
+
+    expect(result.ok).toBe(true);
+    expect(result.message).toContain("dry-run");
+    expect(readMinimumCoverage(dir)).toBe(70);
+  });
+
+  it("fails auto-ratchet when git tree is dirty", () => {
+    const dir = createFixture(70, 8, 10);
+    initializeGitRepo(dir);
+
+    fs.appendFileSync(path.join(dir, "package.json"), "\n");
+
+    const result = runRatchet(dir, { autoRatchet: true });
+
+    expect(result.ok).toBe(false);
+    expect(result.message).toContain("clean git working tree");
+    expect(readMinimumCoverage(dir)).toBe(70);
   });
 
   it("returns ok=true when config is missing", () => {

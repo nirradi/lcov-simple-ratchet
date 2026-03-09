@@ -1,6 +1,6 @@
 {
   "name": "lcov-simple-ratchet",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Simple LCOV coverage gate for CI pipelines.",
   "license": "MIT",
   "repository": {
@@ -30,6 +30,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "postbuild": "node -e \"require('fs').chmodSync('dist/cli.js', 0o755)\"",
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

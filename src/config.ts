@@ -4,6 +4,7 @@ import { LcovSimpleRatchetConfig, ResolvedLcovSimpleRatchetConfig } from "./type
 
 interface PackageJsonWithConfig {
   lcovSimpleRatchet?: LcovSimpleRatchetConfig;
+  [key: string]: unknown;
 }
 
 const DEFAULT_LCOV_PATH = "coverage/lcov.info";
@@ -37,15 +38,23 @@ function parseRatchetAbove(value: unknown): number {
   return parsed;
 }
 
-export function loadConfig(cwd: string = process.cwd()): ResolvedLcovSimpleRatchetConfig | null {
-  const packageJsonPath = path.join(cwd, "package.json");
+function getPackageJsonPath(cwd: string): string {
+  return path.join(cwd, "package.json");
+}
+
+function readPackageJson(cwd: string): PackageJsonWithConfig {
+  const packageJsonPath = getPackageJsonPath(cwd);
 
   if (!fs.existsSync(packageJsonPath)) {
     throw new Error(`package.json was not found at ${packageJsonPath}`);
   }
 
   const fileContent = fs.readFileSync(packageJsonPath, "utf8");
-  const packageJson = JSON.parse(fileContent) as PackageJsonWithConfig;
+  return JSON.parse(fileContent) as PackageJsonWithConfig;
+}
+
+export function loadConfig(cwd: string = process.cwd()): ResolvedLcovSimpleRatchetConfig | null {
+  const packageJson = readPackageJson(cwd);
   const config = packageJson.lcovSimpleRatchet;
 
   if (!config) {
@@ -70,4 +79,17 @@ export function loadConfig(cwd: string = process.cwd()): ResolvedLcovSimpleRatch
     lcovPath,
     ratchetAbove
   };
+}
+
+export function updateMinimumCoverage(cwd: string, minimumCoverage: number): void {
+  const packageJson = readPackageJson(cwd);
+
+  if (!packageJson.lcovSimpleRatchet) {
+    throw new Error("Cannot update minimumCoverage: lcovSimpleRatchet config is missing in package.json.");
+  }
+
+  packageJson.lcovSimpleRatchet.minimumCoverage = minimumCoverage;
+
+  const packageJsonPath = getPackageJsonPath(cwd);
+  fs.writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
 }

@@ -46,12 +46,30 @@ Strict mode for missing LCOV file:
 npx lcov-simple-ratchet --fail-on-missing-lcov
 ```
 
+Auto-ratchet `minimumCoverage` when coverage exceeds the ratchet window:
+
+```bash
+npx lcov-simple-ratchet --auto-ratchet
+```
+
+Preview auto-ratchet changes without writing `package.json`:
+
+```bash
+npx lcov-simple-ratchet --auto-ratchet --dry-run
+```
+
 By default, if `coverage/lcov.info` is missing, the command passes (useful for Nx affected runs where some packages have no tests executed).
 
 The command exits with code `1` when:
 
 - Coverage is below `minimumCoverage`, or
 - Coverage is at least `minimumCoverage + ratchetAbove` (default manual ratchet behavior).
+
+When `--auto-ratchet` is used and coverage is at least `minimumCoverage + ratchetAbove`, the command updates `lcovSimpleRatchet.minimumCoverage` instead of failing, with guardrails:
+
+- Only ratchets upward.
+- Requires a clean git working tree (unless using `--dry-run`).
+- `--dry-run` reports the proposed update and does not write files.
 
 That second rule forces an intentional config update when coverage improves significantly.
 

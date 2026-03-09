@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 import { runRatchet } from "./index";
 
-function parseArgs(argv: string[]): { failOnMissingLcov: boolean } {
+function parseArgs(argv: string[]): { failOnMissingLcov: boolean; autoRatchet: boolean; dryRun: boolean } {
   return {
-    failOnMissingLcov: argv.includes("--fail-on-missing-lcov")
+    failOnMissingLcov: argv.includes("--fail-on-missing-lcov"),
+    autoRatchet: argv.includes("--auto-ratchet"),
+    dryRun: argv.includes("--dry-run")
   };
 }
 

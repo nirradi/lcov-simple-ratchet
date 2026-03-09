@@ -1,0 +1,44 @@
+{
+  "name": "lcov-simple-ratchet",
+  "version": "0.1.0",
+  "description": "Simple LCOV coverage gate for CI pipelines.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nirradi/lcov-simple-ratchet.git"
+  },
+  "homepage": "https://github.com/nirradi/lcov-simple-ratchet#readme",
+  "bugs": {
+    "url": "https://github.com/nirradi/lcov-simple-ratchet/issues"
+  },
+  "keywords": [
+    "lcov",
+    "coverage",
+    "ci",
+    "ratchet",
+    "nx",
+    "typescript"
+  ],
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "lcov-simple-ratchet": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "prepare": "npm run build",
+    "start": "node dist/cli.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2",
+    "vitest": "^3.2.4"
+  }
+}

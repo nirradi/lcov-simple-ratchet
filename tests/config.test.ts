@@ -42,6 +42,30 @@ describe("loadConfig", () => {
     expect(config.minimumCoverage).toBe(82);
     expect(config.metric).toBe("lines");
     expect(config.lcovPath).toBe("coverage/lcov.info");
+    expect(config.ratchetAbove).toBe(2);
+  });
+
+  it("parses ratchetAbove from percentage string", () => {
+    const dir = createTempDir();
+
+    fs.writeFileSync(
+      path.join(dir, "package.json"),
+      JSON.stringify(
+        {
+          name: "fixture",
+          version: "1.0.0",
+          lcovSimpleRatchet: {
+            minimumCoverage: 80,
+            ratchetAbove: "2%"
+          }
+        },
+        null,
+        2
+      )
+    );
+
+    const config = loadConfig(dir);
+    expect(config.ratchetAbove).toBe(2);
   });
 
   it("throws when config is missing", () => {
@@ -71,5 +95,27 @@ describe("loadConfig", () => {
     );
 
     expect(() => loadConfig(dir)).toThrow(/minimumCoverage must be a number between 0 and 100/);
+  });
+
+  it("throws when ratchetAbove is invalid", () => {
+    const dir = createTempDir();
+
+    fs.writeFileSync(
+      path.join(dir, "package.json"),
+      JSON.stringify(
+        {
+          name: "fixture",
+          version: "1.0.0",
+          lcovSimpleRatchet: {
+            minimumCoverage: 80,
+            ratchetAbove: "wat"
+          }
+        },
+        null,
+        2
+      )
+    );
+
+    expect(() => loadConfig(dir)).toThrow(/ratchetAbove must be between 0 and 100/);
   });
 });

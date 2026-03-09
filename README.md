@@ -18,6 +18,7 @@ Add this to your `package.json`:
 {
   "lcovSimpleRatchet": {
     "minimumCoverage": 80,
+    "ratchetAbove": "2%",
     "metric": "lines",
     "lcovPath": "coverage/lcov.info"
   }
@@ -27,6 +28,7 @@ Add this to your `package.json`:
 ### Config fields
 
 - `minimumCoverage` (required): Number between `0` and `100`
+- `ratchetAbove` (optional): Number or percentage string, default `2` (or `"2%"`)
 - `metric` (optional): currently only `"lines"` is supported
 - `lcovPath` (optional): defaults to `coverage/lcov.info`
 
@@ -36,7 +38,12 @@ Add this to your `package.json`:
 npx lcov-simple-ratchet
 ```
 
-If the measured coverage is below `minimumCoverage`, the command exits with code `1`.
+The command exits with code `1` when:
+
+- Coverage is below `minimumCoverage`, or
+- Coverage is at least `minimumCoverage + ratchetAbove` (default manual ratchet behavior).
+
+That second rule forces an intentional config update when coverage improves significantly.
 
 ## CI / Nx example
 

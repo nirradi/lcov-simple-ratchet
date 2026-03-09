@@ -4,6 +4,7 @@ export interface LcovSimpleRatchetConfig {
   minimumCoverage: number;
   metric?: CoverageMetric;
   lcovPath?: string;
+  ratchetAbove?: number | string;
 }
 
 export interface CoverageResult {

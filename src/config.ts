@@ -7,9 +7,34 @@ interface PackageJsonWithConfig {
 }
 
 const DEFAULT_LCOV_PATH = "coverage/lcov.info";
+const DEFAULT_RATCHET_ABOVE = 2;
 
 function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function parseRatchetAbove(value: unknown): number {
+  if (value === undefined) {
+    return DEFAULT_RATCHET_ABOVE;
+  }
+
+  let parsed: number;
+
+  if (isNumber(value)) {
+    parsed = value;
+  } else if (typeof value === "string") {
+    const trimmed = value.trim();
+    const normalized = trimmed.endsWith("%") ? trimmed.slice(0, -1) : trimmed;
+    parsed = Number(normalized);
+  } else {
+    throw new Error("lcovSimpleRatchet.ratchetAbove must be a number or percentage string like \"2%\".");
+  }
+
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
+    throw new Error("lcovSimpleRatchet.ratchetAbove must be between 0 and 100.");
+  }
+
+  return parsed;
 }
 
 export function loadConfig(cwd: string = process.cwd()): Required<LcovSimpleRatchetConfig> {
@@ -39,10 +64,12 @@ export function loadConfig(cwd: string = process.cwd()): Required<LcovSimpleRatc
 
   const metric = config.metric ?? "lines";
   const lcovPath = config.lcovPath ?? DEFAULT_LCOV_PATH;
+  const ratchetAbove = parseRatchetAbove(config.ratchetAbove);
 
   return {
     minimumCoverage: config.minimumCoverage,
     metric,
-    lcovPath
+    lcovPath,
+    ratchetAbove
   };
 }
